@@ -33,18 +33,28 @@ class Jwt extends Component
         ];
     }
 
-    public function issue()
+    public function issue(array $claims)
     {
         $now = new DateTimeImmutable();
 
-        $this->token = $this->config->builder()
+        $builder = $this->config->builder()
                                 ->issuedBy('http://example.com')
                                 ->issuedAt($now)
                                 ->canOnlyBeUsedAfter($now)
-                                ->expiresAt($now->modify('+1 hour'))
-                                ->getToken($this->config->signer(), $this->config->signingKey());
+                                ->expiresAt($now->modify('+1 hour'));
+
+        foreach ($claims as $name => $value) {
+            $builder = $builder->withClaim($name, $value);
+        }
+
+        $this->token = $builder->getToken($this->config->signer(), $this->config->signingKey());
 
         return $this->token;
+    }
+
+    public function setToken(string $token)
+    {
+        $this->token = $this->parse($token);
     }
 
     private function parse(string $token)
@@ -55,10 +65,6 @@ class Jwt extends Component
     public function getClaim(string $claim)
     {
         $dataSet = $this->token->claims();
-
-        if (!$dataSet->has($claim)) {
-            throw new InvalidArgumentException("Incorrect claim provided");
-        }
 
         return $dataSet->get($claim);
     }
