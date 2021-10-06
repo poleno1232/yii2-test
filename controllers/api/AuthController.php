@@ -10,6 +10,8 @@ use yii\rest\ActiveController;
 
 class AuthController extends ActiveController
 {
+    use ChecksTokenAccess;
+
     public $modelClass = \app\models\User::class;
 
     public function init()
@@ -54,7 +56,7 @@ class AuthController extends ActiveController
      */
     public function actionLogin()
     {
-        if (!Yii::$app->user->isGuest) {
+        if (!Yii::$app->user->isGuest && $this->getToken()) {
             return ['message' => 'Authorized'];
         }
 
@@ -64,7 +66,7 @@ class AuthController extends ActiveController
         if ($model->login()) {
             $user = Yii::$app->user->getIdentity();
             $user->auth_token = Yii::$app->security->generateRandomString();
-            $user->access_token = Yii::$app->jwt->issue()->toString();
+            $user->access_token = Yii::$app->jwt->issue(['adm' => 1])->toString();
             $user->save();
 
             return $user->access_token;
@@ -73,7 +75,7 @@ class AuthController extends ActiveController
         $response = Yii::$app->getResponse();
         $response->setStatusCode(404);
 
-        return ['message' => 'Access token is invalid'];
+        return ['message' => 'Data is invalid'];
     }
 
     public function checkAccess($action, $model = null, $params = [])
