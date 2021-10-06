@@ -2,8 +2,14 @@
 
 namespace app\models;
 
+use InvalidArgumentException;
+use Throwable;
+use Yii;
+
 class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
+    public const DATE_FORMAT = 'd m y';
+
     public static function tableName()
     {
         return '{{users}}';
@@ -22,6 +28,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
+        try {
+            Yii::$app->jwt->validate($token);
+        } catch (Throwable $e) {
+            return null;
+        }
+
         return self::findOne(['access_token' => $token]);
     }
 
@@ -68,7 +80,13 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function validatePassword($password)
     {
-        return password_verify($password, $this->password);
+        try {
+            Yii::$app->getSecurity()->validatePassword($password, $this->password);
+        } catch (InvalidArgumentException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -77,7 +95,10 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
-            $this->password = password_hash($this->password, PASSWORD_BCRYPT);
+            if ($this->isNewRecord) {
+                $this->auth_token = Yii::$app->security->generateRandomString();
+                $this->password = Yii::$app->security->generatePasswordHash($this->password);
+            }
 
             return true;
         }
