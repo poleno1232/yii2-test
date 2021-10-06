@@ -42,13 +42,13 @@ AppAsset::register($this);
 
     if (Yii::$app->user->isGuest) {
         $items = array_merge($items, [
-            ['label' => 'Login', 'url' => ['/site/login']],
-            ['label' => 'Register', 'url' => ['/site/register']]
+            ['label' => 'Login', 'url' => ['/authentication/login']],
+            ['label' => 'Register', 'url' => ['/authentication/register']]
         ]);
     } else {
         $items = array_merge($items, [
             '<li>'
-            . Html::beginForm(['/site/logout'], 'post', ['class' => 'form-inline'])
+            . Html::beginForm(['/authentication/logout'], 'post', ['class' => 'form-inline'])
             . Html::submitButton(
                 'Logout (' . Yii::$app->user->identity->username . ')',
                 ['class' => 'btn btn-link logout']
