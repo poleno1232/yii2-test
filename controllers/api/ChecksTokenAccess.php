@@ -3,6 +3,7 @@
 namespace app\controllers\api;
 
 use Yii;
+use yii\helpers\BaseArrayHelper;
 use yii\web\ForbiddenHttpException;
 
 trait ChecksTokenAccess
@@ -12,11 +13,29 @@ trait ChecksTokenAccess
         return [];
     }
 
+    protected function claimableActions()
+    {
+        return ['*'];
+    }
 
+    protected function isClaimableAction($action)
+    {
+        foreach ($this->claimableActions() as $claimable) {
+            if ($action->actionMethod === $claimable || $claimable === '*') {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public function checkAccess($action, $model = null, $params = [])
     {
         if (empty($requiredClaims = $this->requiredClaims())) {
+            return true;
+        }
+
+        if (!$this->isClaimableAction($action)) {
             return true;
         }
 
