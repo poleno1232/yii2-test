@@ -20,6 +20,11 @@ class AuthController extends ActiveController
         \Yii::$app->user->enableSession = false;
     }
 
+    protected function requiredClaims()
+    {
+        return [];
+    }
+
     public function actions()
     {
         return array_merge(

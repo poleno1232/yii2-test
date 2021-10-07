@@ -8,26 +8,7 @@ use yii\web\ForbiddenHttpException;
 
 trait ChecksTokenAccess
 {
-    protected function requiredClaims()
-    {
-        return [];
-    }
-
-    protected function claimableActions()
-    {
-        return ['*'];
-    }
-
-    protected function isClaimableAction($action)
-    {
-        foreach ($this->claimableActions() as $claimable) {
-            if ($action->actionMethod === $claimable || $claimable === '*') {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    abstract protected function requiredClaims();
 
     public function checkAccess($action, $model = null, $params = [])
     {
@@ -35,14 +16,14 @@ trait ChecksTokenAccess
             return true;
         }
 
-        if (!$this->isClaimableAction($action)) {
+        if (!$requiredClaims[$action->actionMethod]) {
             return true;
         }
 
         if ($token = $this->getToken()) {
             Yii::$app->jwt->setToken($token);
 
-            foreach ($requiredClaims as $name => $value) {
+            foreach ($requiredClaims[$action->actionMethod] as $name => $value) {
                 $claimData = Yii::$app->jwt->getClaim($name);
 
                 if ($claimData !== $value) {
