@@ -3,11 +3,15 @@
 namespace app\controllers\api;
 
 use Yii;
-use yii\helpers\BaseArrayHelper;
 use yii\web\ForbiddenHttpException;
 
 trait ChecksTokenAccess
 {
+    /**
+     * Returns an array, where keys represent action by its ID and required claims for them
+     *
+     * @return array
+     */
     abstract protected function requiredClaims();
 
     public function checkAccess($action, $model = null, $params = [])
@@ -37,6 +41,11 @@ trait ChecksTokenAccess
         throw new ForbiddenHttpException();
     }
 
+    /**
+     * Returns string representation of token
+     *
+     * @return string|null
+     */
     protected function getToken()
     {
         $header = Yii::$app->getRequest()->getHeaders()->get('Authorization');
