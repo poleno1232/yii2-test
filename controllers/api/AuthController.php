@@ -71,7 +71,7 @@ class AuthController extends ActiveController
         if ($model->login()) {
             $user = Yii::$app->user->getIdentity();
             $user->auth_token = Yii::$app->security->generateRandomString();
-            $user->access_token = Yii::$app->jwt->issue(['adm' => 1])->toString();
+            $user->access_token = Yii::$app->jwt->issue(['adm' => 1], $model->rememberMe)->toString();
             $user->save();
 
             return $user->access_token;

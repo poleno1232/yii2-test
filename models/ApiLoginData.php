@@ -25,7 +25,7 @@ class ApiLoginData extends Model
         return [
             // username and password are both required
             [['username', 'password'], 'required'],
-            //['rememberMe', 'required'],
+            ['rememberMe', 'default', 'value' => false],
         ];
     }
 

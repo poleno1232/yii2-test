@@ -16,6 +16,9 @@ class Jwt extends Component
     private $config;
     private $constraints = [];
 
+    /**
+     * @var \Lcobucci\JWT\Token|null
+     */
     private $token = null;
 
     public function init()
@@ -33,7 +36,12 @@ class Jwt extends Component
         ];
     }
 
-    public function issue(array $claims)
+    /**
+     * Issues a plain token
+     *
+     * @return \Lcobucci\JWT\Token\Plain
+     */
+    public function issue(array $claims, bool $remember = false)
     {
         $now = new DateTimeImmutable();
 
@@ -41,7 +49,7 @@ class Jwt extends Component
                                 ->issuedBy('http://example.com')
                                 ->issuedAt($now)
                                 ->canOnlyBeUsedAfter($now)
-                                ->expiresAt($now->modify('+1 hour'));
+                                ->expiresAt($now->modify($remember ? '+1 month' : '+1 hour'));
 
         foreach ($claims as $name => $value) {
             $builder = $builder->withClaim($name, $value);
@@ -57,6 +65,10 @@ class Jwt extends Component
         $this->token = $this->parse($token);
     }
 
+    /**
+     *
+     * @return \Lcobucci\JWT\Token
+     */
     private function parse(string $token)
     {
         return $this->config->parser()->parse($token);
@@ -64,6 +76,7 @@ class Jwt extends Component
 
     public function getClaim(string $claim)
     {
+        /** @var \Lcobucci\JWT\Token\DataSet */
         $dataSet = $this->token->claims();
 
         return $dataSet->get($claim);
